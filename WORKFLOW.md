@@ -28,3 +28,14 @@ The output has the SAME 15 columns as the source. Only Image and Images change f
 
 ## Not yet automated
 AI image API connection, source-photo downloading, similarity QA, public-media upload, CI, and live-site importing are separate development tasks; this foundation does not claim to perform them. Store import and automatic production changes remain disabled.
+
+## Image sizing and SEO metadata
+All converted images are exactly **800 × 800 pixels**, RGB WebP. The converter uses a high-quality contain fit with white margins rather than crop/stretch, so the entire fabric and any included components remain visible. This does not guarantee fidelity of an AI-generated design; review the actual visual.
+
+Generate a separate metadata import worksheet using:
+```bash
+python metadata.py --csv catalog.csv --output output/image-seo-metadata.csv
+```
+It maps ID, SKU, filename, role, proposed **Image Alt** and **Image Title**. Generated descriptions must be checked against the final image before import, especially close-up and lifestyle captions.
+
+**Import limitation:** The existing Botble 15-column product CSV includes no image-alt or media-title fields. Do NOT add unsupported columns to the product importer or replace product Name with image title. The metadata CSV is for a *separate supported media-metadata importer/API* (to be implemented and verified for this store); image URL changes remain in the original product CSV. No metadata has been installed on the website yet.
