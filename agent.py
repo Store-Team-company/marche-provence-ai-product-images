@@ -46,7 +46,11 @@ def convert(args):
         target=dest/rel;target.parent.mkdir(parents=True,exist_ok=True)
         with Image.open(p) as im:
             im=ImageOps.exif_transpose(im).convert('RGB')
-            im.save(target,'WEBP',quality=args.quality,method=6)
+            # Preserve the full product: contain, never crop off borders or accessories.
+            im=ImageOps.contain(im,(800,800),method=Image.Resampling.LANCZOS)
+            canvas=Image.new('RGB',(800,800),'white')
+            canvas.paste(im,((800-im.width)//2,(800-im.height)//2))
+            canvas.save(target,'WEBP',quality=args.quality,method=6)
         count+=1
     print('Converted',count,'images')
 def export(args):
