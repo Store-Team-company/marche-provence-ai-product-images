@@ -1,1 +1,3 @@
 Pillow>=11,<13
+openai>=2,<4
+requests>=2.31,<3
