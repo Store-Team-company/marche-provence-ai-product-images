@@ -290,6 +290,11 @@ def run(args):
             +', '.join(sorted(stalled))+'\n',encoding='utf-8')
     summary=write_reports(rows,assets,reports)
     print(json.dumps({'run_generated':new,**summary},indent=2),flush=True)
+    continuation=reports/'CONTINUE.flag'
+    if new>0 and summary['complete_technical']<len(rows):
+        continuation.write_text('New images produced, continue next batch.\n',encoding='utf-8')
+    elif continuation.exists():
+        continuation.unlink()
     if summary['complete_technical']==len(rows):
         staging_import(args.catalog,rows,assets,reports/'images-only-import-STAGING-DO-NOT-UPLOAD.csv',args.future_url)
         (reports/'100_READY_FOR_REVIEW.txt').write_text(
