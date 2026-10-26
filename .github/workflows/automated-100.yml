@@ -1,0 +1,80 @@
+name: Marche Provence 100-product autopilot
+on:
+  schedule:
+    - cron: '13 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  issues: write
+concurrency:
+  group: mp-autopilot-100
+  cancel-in-progress: false
+jobs:
+  produce:
+    runs-on: ubuntu-latest
+    timeout-minutes: 58
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Checkout main workflow and source catalog
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Checkout persistent staging branch
+        shell: bash
+        run: |
+          git config user.name 'mp-image-autopilot[bot]'
+          git config user.email 'mp-image-autopilot[bot]@users.noreply.github.com'
+          if git ls-remote --exit-code --heads origin autopilot/staging-100 >/dev/null; then
+            git fetch origin autopilot/staging-100
+            git checkout -B autopilot/staging-100 origin/autopilot/staging-100
+          else
+            git checkout -b autopilot/staging-100
+          fi
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Generate or resume next images (OpenAI only)
+        run: python autopilot.py --catalog input/catalog.csv --limit 100 --max-images 35 --time-budget 2850
+      - name: Commit image assets, reports and staging CSV
+        if: always()
+        shell: bash
+        run: |
+          set -e
+          git add assets/ reports/ || true
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore(autopilot): checkpoint 100-product images and status'
+            git push origin autopilot/staging-100
+          fi
+      - name: Completion report in GitHub issue
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY' > /tmp/mp_issue.txt
+          import json
+          from pathlib import Path
+          p=Path('reports/summary.json')
+          j=json.loads(p.read_text()) if p.is_file() else {}
+          print('Marche Provence automated photography checkpoint')
+          print(f"Products technically completed: {j.get('complete_technical',0)}/{j.get('target_products',100)}")
+          print(f"Images generated: {j.get('images_generated',0)}/{j.get('total_expected_images',500)}")
+          print('Review assets and SEO metadata on the private autopilot/staging-100 branch.')
+          print('Not deployed to server. Human visual fidelity QA required before staging test.')
+          if Path('reports/BLOCKED.txt').exists():
+            print('BLOCKER: Missing OpenAI API key in GitHub Actions secrets.')
+          PY
+          if [ -f reports/100_READY_FOR_REVIEW.txt ]; then
+            if ! gh issue list --state all --search 'in:title MP-PHOTO-100-READY' --json title --jq '.[].title' | grep -qx 'MP-PHOTO-100-READY'; then
+              gh issue create --title 'MP-PHOTO-100-READY' --body-file /tmp/mp_issue.txt
+            fi
+          elif [ -f reports/BLOCKED.txt ]; then
+            if ! gh issue list --state open --search 'in:title MP-PHOTO-SETUP-BLOCKED' --json title --jq '.[].title' | grep -qx 'MP-PHOTO-SETUP-BLOCKED'; then
+              gh issue create --title 'MP-PHOTO-SETUP-BLOCKED' --body-file /tmp/mp_issue.txt
+            fi
+          fi

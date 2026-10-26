@@ -1,0 +1,7 @@
+catalog.csv
+*.env
+.env*
+output/
+approved-images/
+staged-images/
+__pycache__/
