@@ -83,3 +83,11 @@ jobs:
               gh issue create --title 'MP-PHOTO-BATCH-STALLED' --body-file /tmp/mp_issue.txt
             fi
           fi
+
+      - name: Launch next checkpoint batch without waiting an hour
+        if: success()
+        shell: bash
+        run: |
+          if [ -n "$OPENAI_API_KEY" ] && [ -f reports/CONTINUE.flag ]; then
+            gh workflow run automated-100.yml --ref main
+          fi
