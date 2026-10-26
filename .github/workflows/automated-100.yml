@@ -77,4 +77,9 @@ jobs:
             if ! gh issue list --state open --search 'in:title MP-PHOTO-SETUP-BLOCKED' --json title --jq '.[].title' | grep -qx 'MP-PHOTO-SETUP-BLOCKED'; then
               gh issue create --title 'MP-PHOTO-SETUP-BLOCKED' --body-file /tmp/mp_issue.txt
             fi
+          elif [ -f reports/STALLED.txt ]; then
+            cat reports/STALLED.txt >> /tmp/mp_issue.txt
+            if ! gh issue list --state open --search 'in:title MP-PHOTO-BATCH-STALLED' --json title --jq '.[].title' | grep -qx 'MP-PHOTO-BATCH-STALLED'; then
+              gh issue create --title 'MP-PHOTO-BATCH-STALLED' --body-file /tmp/mp_issue.txt
+            fi
           fi
