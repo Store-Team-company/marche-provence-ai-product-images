@@ -243,12 +243,18 @@ def run(args):
     client=OpenAI(timeout=160, max_retries=0)
     new=0
     failures=[]
+    failure_counts_path=reports/'failure-counts.json'
+    try:
+        failure_counts=json.loads(failure_counts_path.read_text()) if failure_counts_path.exists() else {}
+    except (ValueError,OSError):
+        failure_counts={}
     # Handle incomplete SKUs first, then new SKUs; stop at job budget.
     rows.sort(key=lambda r:(-sum(valid(assets/clean(r['SKU'])/filename(r,role)) for role in ROLES),r['ID']))
     for row in rows:
         folder=assets/clean(row['SKU'])
         pending=[role for role in ROLES if not valid(folder/filename(row,role))]
         if not pending:continue
+        if failure_counts.get(row['SKU'],0)>=3:continue
         if new>=args.max_images or time.monotonic()-start>=args.time_budget:break
         refs=[]
         for url in urls(row):
@@ -256,6 +262,7 @@ def run(args):
             except Exception as exc:failures.append(f'{row["SKU"]}: source {url}: {type(exc).__name__} {exc}')
         if not refs:
             failures.append(f'{row["SKU"]}: NO_SOURCE_REFERENCES; skipped')
+            failure_counts[row['SKU']]=failure_counts.get(row['SKU'],0)+1
             continue
         for role in pending:
             if new>=args.max_images or time.monotonic()-start>=args.time_budget:break
@@ -264,15 +271,23 @@ def run(args):
                 path=folder/filename(row,role)
                 webp_800(data,path)
                 new+=1
+                failure_counts[row['SKU']]=0
                 print(f'CREATED {row["SKU"]} {role}: {path}',flush=True)
             except Exception as exc:
                 failures.append(f'{row["SKU"]} {role}: {exc}')
+                failure_counts[row['SKU']]=failure_counts.get(row['SKU'],0)+1
                 # Stop this SKU on API issues, continue next SKU.
                 break
         write_reports(rows,assets,reports)
     if failures:
         with (reports/'failures.log').open('a',encoding='utf-8') as f:
             for line in failures:f.write(datetime.now(timezone.utc).isoformat()+' '+line[:900]+'\n')
+    failure_counts_path.write_text(json.dumps(failure_counts,indent=2),encoding='utf-8')
+    stalled=[sku for sku,count in failure_counts.items() if count>=3]
+    if stalled:
+        (reports/'STALLED.txt').write_text(
+            '3 consecutive failed attempts. SKUs requiring reference/API diagnosis: '
+            +', '.join(sorted(stalled))+'\n',encoding='utf-8')
     summary=write_reports(rows,assets,reports)
     print(json.dumps({'run_generated':new,**summary},indent=2),flush=True)
     if summary['complete_technical']==len(rows):
