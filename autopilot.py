@@ -225,6 +225,12 @@ def staging_import(catalog_path,rows,assets,out,base_url):
 def run(args):
     rows=selection(args.catalog,args.limit)
     assets=Path(args.assets);reports=Path(args.reports)
+    if (reports/'100_READY_FOR_REVIEW.txt').exists() and all(
+            all(valid(assets/clean(r['SKU'])/filename(r,role)) for role in ROLES) for r in rows):
+        print('Completed 100-product batch previously; skipping all generation and commits.')
+        return
+    if os.getenv('OPENAI_API_KEY') and (reports/'BLOCKED.txt').exists():
+        (reports/'BLOCKED.txt').unlink()
     start=time.monotonic()
     summary=write_reports(rows,assets,reports)
     if summary['complete_technical'] == len(rows):
