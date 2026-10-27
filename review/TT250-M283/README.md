@@ -1,22 +1,22 @@
-# TT250 & M283 image redesign — QA GATE
+# TT250 & M283 — 10 standalone WebP gallery images
 
-**STATUS: INCOMPLETE — DO NOT IMPORT.** The assets directory contains **8 individual 800×800 WebP files**, not a complete 10-image batch.
+This batch now contains **five separate 800×800 WebP files per SKU (10 total)**. No collages.
 
-| SKU | Main | Detail/alternate | Infographic | Outdoor | People |
+| SKU | Main | Alternative | Infographic | Outdoor setting | People using product |
 |---|---|---|---|---|---|
-| TT250 | Draft | Draft detail crop | Draft | **Missing** | **Missing** |
-| M283 | Draft | Draft | Draft | Draft | Draft |
+| TT250 | Ready for review | Detail crop | Ready for review | Ready for review | Ready for review |
+| M283 | Ready for review | Ready for review | Ready for review | Ready for review | Ready for review |
 
-## Fidelity checks
-- TT250: primary reference is the actual blue watercolor/mottled background, sparse cicada motif, slender green leaves, **yellow/orange** four corner ties. Earlier lifestyle renders were rejected for adding repeated cicadas and wrong pattern; not staged.
-- TT250 detail file is a crop of the newly corrected main photo, not a distinct camera-angle generation.
-- M283: blue Delft jacquard field and white-blue filigree cadre border. The manufacturer's exact print has not been established visually from its website file; 5 previous standalone concepts are staged **as drafts only**.
-- Product facts from the customer CSV: TT250 = 8×8-inch acrylic-coated cotton tie-up basket (description corroborated on site); M283 = 19×13-inch jacquard woven blue Delft center placemat.
+**TT250:** 8×8-inch Tissus Toselli Cigale blue bread basket with watercolor-blue background, slender green leaves, sparse yellow cicada and four yellow corner ties. The alternative view is a close detail crop from the studio image, not an invented new object.
 
-## Files
-- `images/`: 8 actual WebP binary files, each 800×800, verified against Git SHA.
-- `SEO-and-QA-review.csv`: image names, title and alt text.
-- `M283-SKU-Images-PREVIEW-ONLY.csv`: one product row with five immutable GitHub raw URLs for testing **Preview & Verify**, never clicking Apply until visually approved.
+**M283:** 19×13-inch Bastide Blue Delft jacquard placemat, rectangular navy field framed by a white-and-blue filigree floral border.
 
-**There is no two-SKU import-ready CSV**, because the two TT250 lifestyle views are missing. The previous collage outputs were discarded.
-No live-site or server changes were made. This branch is **review only**.
+CSV for your existing image-only importer: `TT250-M283-SKU-Images-GITHUB-RAW-REVIEW.csv` with exactly **SKU,Images**, five public immutable GitHub RAW URLs per product, ordered main / alternative / infographic / outdoor / people. Actual binary files are under `images/`. Image commit: `8750d64c51eebcf77f04163bc216dd0a91032081`.
+
+SEO title/alt-text suggestions: `SEO-Image-Metadata.csv`.
+
+## QA gate
+
+All ten files are genuine standalone 800×800 WebP assets, but **they are AI recreations**. Recheck the original merchandise's exact printed artwork—especially M283's Delft weave and the cicada placement on TT250—before you click Apply in Botble. A successful download does not establish that product appearance is identical.
+
+**No live store changes were made from this GitHub task.**
