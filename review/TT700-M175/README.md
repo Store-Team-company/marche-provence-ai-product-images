@@ -1,13 +1,27 @@
-# Cassis corrected product images — TT700 & M175
+# TT700 and M175 — five-image WebP pilot
 
-- Products: **TT700** (tablecloth only) and **M175** (six-piece ensemble, napkins and green tie-up bread basket)
-- Image count: **5 each**, generated in ChatGPT, 800×800 WebP conversion completed.
-- **The binary WebP images are NOT uploaded to this GitHub branch.** They are available as a ZIP attached to the ChatGPT response and must be uploaded to the live public media directory before importing.
-- Upload all 10 images into **`public_html/public/storage/marche-provence-images/`**.
-- Then verify each `https://marcheprovence.com/storage/marche-provence-images/<filename>` returns the right actual picture.
-- The `SKU,Images` CSV in this branch contains **future server URLs**, not GitHub URLs, and must be used only with the proven image-only database mapping / dedicated importer, not the standard Botble full-product import workflow.
-- SEO metadata is provided for review but not installed in Botble.
-- This private GitHub repository cannot serve anonymous `raw.githubusercontent.com` image URLs to Botble. Public files or an authenticated image importer would be necessary.
-- These are AI-generated **DRAFT** images; fabric motif and accessory fidelity must be checked against real product photographs before publishing.
+**Actual binary files are uploaded.** The branch now contains all ten verified 800×800 WebP images under [images/](./images/), and the two-product CSV at [TT700-M175-SKU-Images-GITHUB-RAW-TEST.csv](./TT700-M175-SKU-Images-GITHUB-RAW-TEST.csv).
 
-No live store image changes have been performed through this branch.
+Products:
+- TT700 — 64-inch square Cassis Jacquard Red & Turquoise tablecloth (five image roles)
+- M175 — 64-inch square Cassis 6-piece ensemble with napkins and bread basket (five image roles)
+
+Each has 5 separate WebP files: **main**, **alternate**, **infographic**, **outdoor**, and **people**. Images remain **AI-generated drafts pending close comparison with the real textile and accessories**.
+
+## Testing GitHub image downloads
+
+GitHub raw-image URLs in the CSV point to the **immutable image commit** `314cd2902db52f5ffa2f6089f60affaa5095ac7f` and will work anonymously **only after this repository is made public**. Before importing, open the first image URL in a private/incognito browser window and verify that the response is a WebP image, not an HTML login page.
+
+The file `TT700-M175-SKU-Images-GITHUB-RAW-TEST.csv` contains **only `SKU,Images`**. The existing Botble *full product importer* previously rejected this two-column format, and it must not be used for testing without a dedicated image-only importer. The normal Botble update pathway can modify unrelated product fields or associations.
+
+To verify server-side fetching without changing a product, run:
+```bash
+curl -L --fail --silent --show-error -o /tmp/tt700-github-image-test.webp 'https://raw.githubusercontent.com/Store-Team-company/marche-provence-ai-product-images/314cd2902db52f5ffa2f6089f60affaa5095ac7f/review/TT700-M175/images/tt700-cassis-red-turquoise-64-inch-square-jacquard-tablecloth-main.webp'
+file /tmp/tt700-github-image-test.webp
+```
+
+If this returns a valid WebP from the server, GitHub download access works. A **dedicated SKU + Images importer** is still needed to apply the two-column CSV to products. Do not change your live catalog or mark generated images as faithful merchandise photographs until QA passes.
+
+Alternative server upload CSV: `TT700-M175-SKU-Images-SERVER-READY.csv` uses your existing public server folder `public_html/public/storage/marche-provence-images/` and is not the direct-GitHub test.
+
+Status: **GitHub images + two-column CSV pushed; public access and Botble import not yet verified.**
