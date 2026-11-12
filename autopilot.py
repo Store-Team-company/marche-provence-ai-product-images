@@ -222,6 +222,33 @@ def staging_import(catalog_path,rows,assets,out,base_url):
         w=csv.DictWriter(f,fieldnames=HEADERS);w.writeheader();w.writerows(all_rows)
     return updates
 
+
+def staging_import_sku_images(catalog_path, rows, assets, out, base_url):
+    """Write only SKU and five gallery URLs. Requires dedicated SKU image-only importer."""
+    if not base_url.startswith('https://'):
+        raise ValueError('Only HTTPS media URLs allowed')
+    source_skus={r['SKU'] for r in catalog(catalog_path)}
+    completed=[]
+    seen=set()
+    for row in rows:
+        sku=row['SKU']
+        if sku not in source_skus or sku in seen:
+            raise ValueError('SKU is missing from source catalog or duplicated')
+        seen.add(sku)
+        folder=assets/clean(sku)
+        images=[folder/filename(row,role) for role in ROLES]
+        if not all(valid(p) for p in images):
+            continue
+        # Flat public folder, matching /public/storage/marche-provence-images/
+        urls=[f"{base_url.rstrip('/')}/{p.name}" for p in images]
+        completed.append({'SKU':sku, 'Images':','.join(urls)})
+    out.parent.mkdir(parents=True,exist_ok=True)
+    with out.open('w',encoding='utf-8-sig',newline='') as f:
+        writer=csv.DictWriter(f,fieldnames=['SKU','Images'])
+        writer.writeheader()
+        writer.writerows(completed)
+    return len(completed)
+
 def run(args):
     rows=selection(args.catalog,args.limit)
     assets=Path(args.assets);reports=Path(args.reports)
@@ -296,7 +323,7 @@ def run(args):
     elif continuation.exists():
         continuation.unlink()
     if summary['complete_technical']==len(rows):
-        staging_import(args.catalog,rows,assets,reports/'images-only-import-STAGING-DO-NOT-UPLOAD.csv',args.future_url)
+        staging_import_sku_images(args.catalog,rows,assets,reports/'sku-images-only-STAGING-DO-NOT-UPLOAD.csv',args.future_url)
         (reports/'100_READY_FOR_REVIEW.txt').write_text(
             '100 product sets generated at 800x800 WebP; pending HUMAN visual print/contents QA. '\
             'Images are in private GitHub, NOT uploaded to server. STAGING CSV URL fields do not exist until server deployment.\n')
@@ -310,7 +337,7 @@ def main():
     p.add_argument('--max-images',type=int,default=35)
     p.add_argument('--time-budget',type=int,default=2950)
     p.add_argument('--retries',type=int,default=1)
-    p.add_argument('--future-url',default='https://marcheprovence.com/storage/imported-product-images')
+    p.add_argument('--future-url',default='https://marcheprovence.com/storage/marche-provence-images')
     p.add_argument('--report-only',action='store_true')
     args=p.parse_args()
     if not 1 <= args.limit <= 100 or not 1 <= args.max_images <= 50 or args.time_budget>3100:
